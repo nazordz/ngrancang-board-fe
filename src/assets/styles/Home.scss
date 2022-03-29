@@ -1,0 +1,12 @@
+@use 'variables' as v;
+@use "sass:map";
+
+.scrum-img {
+  width: 400px;
+}
+
+@media screen and (max-width: map.get(v.$break-points, 'mobile')) {
+  .scrum-img {
+    width: 300px;
+  }
+}

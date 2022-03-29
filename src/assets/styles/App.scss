@@ -1,0 +1,10 @@
+@use "variables" as v;
+body {
+  margin: 0;
+}
+
+@each $key, $color in v.$colors {
+  .font-#{$key} {
+    color: $color;
+  }
+}
