@@ -14,7 +14,7 @@ function Home() {
         alignItems="center"
         width="100%"
         sx={{
-          background: 'linear-gradient(90.17deg, #4A69BD 0.62%, rgba(0, 88, 169, 0.55) 99.83%)',
+          background: 'linear-gradient(90.17deg, #2ecc71 0.62%, rgba(0, 88, 169, 0.55) 99.83%)',
           minHeight: 700
         }}
       >
@@ -44,7 +44,7 @@ function Home() {
           >
             Solusi Masalah
           </Typography>
-          <Typography variant="h2" className="font-dark">
+          <Typography variant="h5" className="font-dark">
             Kemudahan untuk menata pekerjaan anda di aplikasi Ngerancang tanpa ribet
           </Typography>
         </Stack>

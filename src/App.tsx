@@ -6,7 +6,6 @@ import Grid from '@mui/material/Grid'
 import CircularProgress from '@mui/material/CircularProgress'
 
 function App() {
-
   const Routes = () => useRoutes(router)
 
   return (
