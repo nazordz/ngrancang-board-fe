@@ -12,7 +12,6 @@ export default defineConfig(({ command, mode }) => {
         'SECURE_LOCAL_STORAGE_HASH_KEY': JSON.stringify(env.SECURE_LOCAL_STORAGE_HASH_KEY)
       },
     },
-
   }
 
 })

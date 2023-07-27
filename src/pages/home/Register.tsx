@@ -13,21 +13,20 @@ import {
 } from "@mui/material";
 import { useFormik } from "formik";
 import React from "react";
-import * as Yup from "yup"
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';;
-
-interface IInitialValues {
-  name: string;
-  email: string;
-  phone: string;
-  position: string;
-  password: string;
-}
-
+import * as Yup from "yup";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import http from "@/utils/http";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch } from "@/store/hooks";
+import { SnackbarState } from "@/store/slices/snackbarSlice";
+import { showSnackbar } from "@/store/slices/snackbarSlice";
+import { register } from "@/services/AuthenticationService";
 const validationSchema = Yup.object().shape({
   name: Yup.string().required("Nama harus diisi"),
-  email: Yup.string().email("Format tidak sesuai").required("Email harus diisi"),
+  email: Yup.string()
+    .email("Format tidak sesuai")
+    .required("Email harus diisi"),
   phone: Yup.string()
     .required("Nomor telepon harus diisi")
     .min(6, "Telepon minimal 6 karakter")
@@ -48,9 +47,11 @@ const validationSchema = Yup.object().shape({
 });
 
 const Register: React.FC = () => {
-  const [showPassword, setShowPassword] = React.useState(false)
+  const [showPassword, setShowPassword] = React.useState(false);
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
-  const formik = useFormik<IInitialValues>({
+  const formik = useFormik<ISignupRequest>({
     initialValues: {
       email: "",
       name: "",
@@ -60,7 +61,23 @@ const Register: React.FC = () => {
     },
     validationSchema,
     async onSubmit(values, formikHelpers) {
-
+      const user = await register(values);
+      if (user != null) {
+        const snackbarState: SnackbarState = {
+          isOpen: true,
+          message: "User berhasil didaftarkan. Mohon tunggu konfirmasi",
+          variant: "success",
+        };
+        dispatch(showSnackbar(snackbarState));
+        navigate("/login");
+      } else {
+        const snackbarState: SnackbarState = {
+          isOpen: true,
+          message: "Terdapat kesalahan",
+          variant: "warning",
+        };
+        dispatch(showSnackbar(snackbarState));
+      }
     },
   });
 
@@ -123,24 +140,26 @@ const Register: React.FC = () => {
                 variant="standard"
                 label="Password*"
                 name="password"
-                type={showPassword ? 'text' : "password"}
+                type={showPassword ? "text" : "password"}
                 placeholder="Masukan password"
                 onChange={formik.handleChange}
                 value={formik.values.password}
                 error={Boolean(formik.errors.password)}
                 helperText={formik.errors.password}
                 InputProps={{
-                  endAdornment: <>
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  </>
+                  endAdornment: (
+                    <>
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    </>
+                  ),
                 }}
               />
               <LoadingButton

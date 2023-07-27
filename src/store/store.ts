@@ -1,51 +1,37 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import snackbarReducer from "./slices/snackbarSlice";
-// import deleteConfirmDialogReducer from "./slices/deleteConfirmDialogSlice";
-// import storage from "redux-persist/lib/storage";
-// import userReducer from "./slices/userSlice";
-// import emailReducer from "./slices/emailSlice";
-// import popoverReducer from "./slices/popoverSlice";
-// import {
-  // persistStore,
-  // persistReducer,
-  // FLUSH,
-  // REHYDRATE,
-  // PAUSE,
-  // PERSIST,
-  // PURGE,
-  // REGISTER,
-// } from "redux-persist";
-// import { encryptTransform } from "redux-persist-transform-encrypt";
+import formProjectSlice from "./slices/formProjectSlice";
+import storage from 'redux-persist/lib/storage'
+import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistReducer, persistStore } from "redux-persist";
+import authenticateSlice from "./slices/authenticateSlice";
+import NavbarSlice from "./slices/navbarSlice";
+import confirmDeleteSlice from "./slices/confirmDeleteSlice";
 
-// const userPersistConfig = {
-//   key: "user",
-//   storage,
-// };
-// const persistedUserReducer = persistReducer(userPersistConfig, userReducer);
-// const persistedUserReducer = persistReducer({
-//   transforms: [
-//     encryptTransform({
+const persistConfig = {
+  key: process.env.SECURE_LOCAL_STORAGE_HASH_KEY!,
+  storage,
+};
 
-//     })
-//   ]
-// })
+const persistedNavbarSlice = persistReducer(persistConfig, NavbarSlice)
+const persistedAuthenticateSlice = persistReducer(persistConfig, authenticateSlice)
 
 const reducers = combineReducers({
   snackbar: snackbarReducer,
-  // confirmDeleteDialog: deleteConfirmDialogReducer,
-  // user: persistedUserReducer,
-  // email: emailReducer,
-  // popover: popoverReducer,
+  formProjectDialog: formProjectSlice,
+  navbarSlice: persistedNavbarSlice,
+  authenticateSlice: persistedAuthenticateSlice,
+  // confirmDeleteSlice: confirmDeleteSlice,
 });
 
 export const store = configureStore({
   reducer: reducers,
-  // middleware: (getDefaultMiddleware) =>
-  //   getDefaultMiddleware({
-  //     serializableCheck: {
-  //       ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-  //     },
-  //   }),
+  middleware(getDefaultMiddleware) {
+    return getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    })
+  }
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
@@ -53,4 +39,4 @@ export type RootState = ReturnType<typeof store.getState>;
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch;
 
-// export const persistor = persistStore(store);
+export const persistor = persistStore(store);

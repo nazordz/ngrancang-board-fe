@@ -1,4 +1,6 @@
+import { ISignupRequest, JwtPayload, LoginResponse, User } from "@/models";
 import http from "@/utils/http";
+import axios from "axios";
 import jwtDecode from "jwt-decode";
 import secureLocalStorage  from  "react-secure-storage";
 
@@ -11,6 +13,27 @@ export async function SignIn(email: string, password: string) {
     secureLocalStorage.setItem('refresh_token', request.data.refresh_token)
     secureLocalStorage.setItem('expires_in', request.data.expires_in)
     return request.data;
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function refreshToken() {
+  const token = getRefreshToken()
+  const request = await axios.post<LoginResponse>(import.meta.env.VITE_API_URL + "/auth/refresh", {
+    token
+  });
+
+  secureLocalStorage.setItem('access_token', request.data.access_token)
+  secureLocalStorage.setItem('refresh_token', request.data.refresh_token)
+  secureLocalStorage.setItem('expires_in', request.data.expires_in)
+  return request.data;
+}
+
+export async function register(request: ISignupRequest) {
+  try {
+    const response = await http.post<User>('/auth/signup', request)
+    return response.data;
   } catch (error) {
     return null;
   }

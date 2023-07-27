@@ -15,15 +15,16 @@ export const LinkBehavior = React.forwardRef<
 // A custom theme for this app
 const theme = createTheme({
   typography: {
-    fontFamily: 'Roboto'
+    fontFamily: 'Roboto',
     // body1: {
     //   fontWeight: 400,
     //   fontSize: 12,
     // },
-    // h1: {
-    //   fontWeight: 600,
-    //   fontSize: 24,
-    // },
+    h1: {
+      fontWeight: 400,
+      fontSize: 24,
+      color: '#172B4D'
+    },
     // h2: {
     //   fontWeight: 600,
     //   fontSize: 18,
@@ -40,9 +41,11 @@ const theme = createTheme({
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#f1c40f',
+      // main: '#f1c40f',
+      main: "#637381",
       contrastText: '#ffffff',
     },
+
   },
   components: {
     MuiButton: {

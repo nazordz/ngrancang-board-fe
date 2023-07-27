@@ -1,4 +1,3 @@
-import { LinkBehavior } from "@/themes/Theme";
 import {
   Collapse,
   List,
@@ -13,10 +12,10 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 import { useLocation } from "react-router-dom";
 import { useAppSelector } from "@/store/hooks";
 import HomeIcon from "../../public/icon/home.svg";
-// import { fetchAuthenticatedUser } from "@/services/userService";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import { IMenuList } from "@/utils/menuList";
+import { LinkBehavior } from "@/theme";
 
 type IProps = {
   menu: IMenuList;

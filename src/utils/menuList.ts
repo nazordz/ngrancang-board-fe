@@ -3,6 +3,10 @@ import { OverridableComponent } from "@mui/material/OverridableComponent";
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
 import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined';
+import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
+import SettingsIcon from '@mui/icons-material/Settings';
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
+import { IMenu } from "@/models";
 
 export interface IMenuList {
   to: string;
@@ -12,20 +16,30 @@ export interface IMenuList {
   children?: IMenuList[];
 }
 
-export const menuList: IMenuList[] = [
+export const menuList: IMenu[] = [
+  // {
+  //   icon: MapIcon,
+  //   link: '/backoffice',
+  //   title: 'Roadmap'
+  // },
   {
-    label: "Roadmap",
-    Icon: ListAltIcon,
-    to: "/",
+    icon: FormatListNumberedIcon,
+    link: '/backlog',
+    title: 'Backlog'
   },
   {
-    label: "Backlog",
-    Icon: ClearAllIcon,
-    to: "/",
+    icon: DirectionsRunIcon,
+    link: '/active-sprint',
+    title: 'Active Sprint'
   },
+  // {
+  //   icon: ChecklistIcon,
+  //   link: '/issues',
+  //   title: 'Issues'
+  // },
   {
-    label: "Active Sprint",
-    Icon: ViewColumnOutlinedIcon,
-    to: "/",
+    icon: SettingsIcon,
+    link: '/settings',
+    title: 'Pengaturan Project'
   },
 ];

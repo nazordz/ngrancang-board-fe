@@ -19,6 +19,10 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { LoadingButton } from "@mui/lab";
 import { SignIn } from "@/services/AuthenticationService";
 import { useNavigate } from "react-router-dom";
+import { useAppDispatch } from "@/store/hooks";
+import { userLogged } from "@/store/slices/authenticateSlice";
+import jwtDecode from "jwt-decode";
+import { JwtPayload } from "@/models";
 
 interface Values {
   email: string
@@ -35,6 +39,7 @@ const validationSchema = Yup.object().shape({
 const Login: React.FC = () => {
   const [showPassword, setShowPassword] = React.useState(false)
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
 
   const formik = useFormik<Values>({
     initialValues: {
@@ -45,7 +50,8 @@ const Login: React.FC = () => {
     async onSubmit(values, formikHelpers) {
       const request = await SignIn(values.email, values.password);
       if (request) {
-        navigate('/backoffice')
+        dispatch(userLogged(jwtDecode<JwtPayload>(request.access_token).user))
+        navigate('/projects')
       }
     },
   });
@@ -68,8 +74,9 @@ const Login: React.FC = () => {
                 placeholder="Masukan email"
                 onChange={formik.handleChange}
                 value={formik.values.email}
-                error={Boolean(formik.errors.email)}
-                helperText={formik.errors.email}
+                error={Boolean(formik.errors.email) && formik.touched.email}
+                onBlur={formik.handleBlur}
+                helperText={(formik.touched.email) && formik.errors.email}
               />
               <TextField
                 variant="standard"
@@ -79,8 +86,10 @@ const Login: React.FC = () => {
                 placeholder="Masukan password"
                 onChange={formik.handleChange}
                 value={formik.values.password}
-                error={Boolean(formik.errors.password)}
-                helperText={formik.errors.password}
+                error={Boolean(formik.errors.password) && formik.touched.password}
+                onBlur={formik.handleBlur}
+                helperText={(formik.touched.password) && formik.errors.password}
+                onKeyDown={e => e.key == 'Enter' && formik.submitForm()}
                 InputProps={{
                   endAdornment: <>
                     <InputAdornment position="end">
