@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import BackofficeBreacrumbs, {
   LinkBreadcrumb,
 } from "@/components/global/BackofficeBreacrumbs";
-import { useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   Box,
   Button,
@@ -47,6 +47,7 @@ import dayjs from "dayjs";
 import FormSprintDialog from "@/components/dialogs/FormSprintDialog";
 import { endSprint, startSprint } from "@/services/SprintService";
 import EpicDialog from "@/components/dialogs/EpicDialog";
+import { showSnackbar } from "@/store/slices/snackbarSlice";
 const grid = 8;
 
 const getItemStyle = (
@@ -95,7 +96,7 @@ const Backlogs: React.FC = () => {
     });
   const [showSprintDialog, setShowSprintDialog] = useState(false)
   const [showEpicDialog, setShowEpicDialog] = useState(false)
-
+  const dispatch = useAppDispatch();
   const reorder = (
     list: InputStory[],
     startIndex: number,
@@ -340,6 +341,11 @@ const Backlogs: React.FC = () => {
 
   async function onStartSprint(sprintId: string) {
     await startSprint(sprintId);
+    dispatch(showSnackbar({
+      isOpen: true,
+      message: "Sprint telah dimulai",
+      variant: 'success'
+    }))
     fetchData();
   }
   async function onEndSprint(sprintId: string) {

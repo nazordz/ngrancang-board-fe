@@ -21,8 +21,8 @@ import {
   Settings,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { SignOut } from "@/services/AuthenticationService";
-import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
+import { SignOut, getUser } from "@/services/AuthenticationService";
+import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { toggleDialogProject } from "@/store/slices/formProjectSlice";
 import { fetchProjects, selectProject } from "@/store/slices/navbarSlice";
@@ -30,14 +30,16 @@ import { userLogout } from "@/store/slices/authenticateSlice";
 import { LinkBehavior } from "@/theme";
 
 const BackofficeTopNavigation: React.FC = () => {
-  const [anchorElAccount, setAnchorElAccount] = React.useState<null | HTMLElement>(null);
+  const [anchorElAccount, setAnchorElAccount] =
+    React.useState<null | HTMLElement>(null);
   const [openAccount, setOpenAccount] = React.useState(false);
-  const [anchorElProject, setAnchorElProject] = React.useState<null | HTMLElement>(null)
+  const [anchorElProject, setAnchorElProject] =
+    React.useState<null | HTMLElement>(null);
   const [openProject, setOpenProject] = React.useState(false);
-  const projects = useAppSelector(state => state.navbarSlice.projects)
+  const projects = useAppSelector((state) => state.navbarSlice.projects);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const user = useAppSelector(state => state.authenticateSlice.user)
+  const user = getUser();
 
   const toggleMenuAccount = () => {
     setOpenAccount(!openAccount);
@@ -45,18 +47,18 @@ const BackofficeTopNavigation: React.FC = () => {
 
   const toggleMenuProject = () => {
     setOpenProject(!openProject);
-  }
+  };
 
   function logout() {
-    dispatch(userLogout())
+    dispatch(userLogout());
     SignOut();
-    navigate('/')
+    navigate("/");
     setOpenAccount(false);
     setAnchorElAccount(null);
   }
 
   React.useEffect(() => {
-    dispatch(fetchProjects())
+    dispatch(fetchProjects());
   }, []);
 
   return (
@@ -65,10 +67,10 @@ const BackofficeTopNavigation: React.FC = () => {
         <Box
           className="button-logo"
           onClick={() => {
-            navigate('/backoffice')
+            navigate("/active-sprint");
           }}
         >
-          <Box component="img" src={logo} alt="image" sx={{height: "50px"}} />
+          <Box component="img" src={logo} alt="image" sx={{ height: "50px" }} />
         </Box>
         {/* <Box>
           <Button
@@ -99,26 +101,34 @@ const BackofficeTopNavigation: React.FC = () => {
             onClick={toggleMenuProject}
             PaperProps={{
               sx(theme) {
-                  return{
-                    width: 280
-                  }
+                return {
+                  width: 280,
+                };
               },
             }}
           >
-            {projects ? projects.content?.map((project, index) => (
-              <MenuItem key={index} onClick={() => dispatch(selectProject(project))}>
-                <ListItemIcon>
-                  <AssignmentTurnedInIcon />
-                </ListItemIcon>
-                <ListItemText primary={project.name} secondary="Software Project" />
-              </MenuItem>
-            )) : (
+            {projects ? (
+              projects.content?.map((project, index) => (
+                <MenuItem
+                  key={index}
+                  onClick={() => dispatch(selectProject(project))}
+                >
+                  <ListItemIcon>
+                    <AssignmentTurnedInIcon />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={project.name}
+                    secondary="Software Project"
+                  />
+                </MenuItem>
+              ))
+            ) : (
               <MenuItem>
                 <ListItemText>Tidak ada project</ListItemText>
               </MenuItem>
             )}
-            <Divider/>
-            <MenuItem  component={LinkBehavior} href="/projects" >
+            <Divider />
+            <MenuItem component={LinkBehavior} href="/projects">
               Lihat semua project
             </MenuItem>
             <MenuItem onClick={() => dispatch(toggleDialogProject())}>
@@ -179,16 +189,15 @@ const BackofficeTopNavigation: React.FC = () => {
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        <MenuItem onClick={() => setOpenAccount(false)}>
+        <MenuItem
+          onClick={() => {
+            setOpenAccount(false);
+            navigate("/profile");
+          }}
+        >
           <Avatar /> {user?.name}
         </MenuItem>
         <Divider />
-        <MenuItem onClick={() => setOpenAccount(false)}>
-          <ListItemIcon>
-            <Settings fontSize="small" />
-          </ListItemIcon>
-          Settings
-        </MenuItem>
         <MenuItem onClick={logout}>
           <ListItemIcon>
             <Logout fontSize="small" />

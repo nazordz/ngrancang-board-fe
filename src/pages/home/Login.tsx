@@ -23,6 +23,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { userLogged } from "@/store/slices/authenticateSlice";
 import jwtDecode from "jwt-decode";
 import { JwtPayload } from "@/models";
+import { SnackbarState, showSnackbar } from "@/store/slices/snackbarSlice";
 
 interface Values {
   email: string
@@ -52,6 +53,13 @@ const Login: React.FC = () => {
       if (request) {
         dispatch(userLogged(jwtDecode<JwtPayload>(request.access_token).user))
         navigate('/projects')
+      } else {
+        const snackbarState: SnackbarState = {
+          isOpen: true,
+          message: "Password salah / user nonaktif",
+          variant: "warning",
+        };
+        dispatch(showSnackbar(snackbarState));
       }
     },
   });

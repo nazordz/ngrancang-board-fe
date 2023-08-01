@@ -69,6 +69,7 @@ export interface IMenu {
   link: string;
   icon: SvgIconComponent;
   title: string;
+  roles: string[];
 }
 
 export interface FormProjectRequest {
@@ -252,4 +253,13 @@ export interface EpicForm {
   key: string;
   summary: string;
   project_id: string;
+}
+
+export interface UserProfileForm {
+  name: string;
+  position: string;
+  email: string;
+  phone: string;
+  changePassword: boolean;
+  newPassword: string;
 }

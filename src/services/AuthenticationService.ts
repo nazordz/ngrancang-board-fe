@@ -35,6 +35,7 @@ export async function register(request: ISignupRequest) {
     const response = await http.post<User>('/auth/signup', request)
     return response.data;
   } catch (error) {
+    console.error(error)
     return null;
   }
 }
@@ -58,4 +59,13 @@ export function getAccessToken() {
 
 export function getRefreshToken() {
   return secureLocalStorage.getItem('refresh_token') as string|null
+}
+
+export async function fetchCurrentUser() {
+  try {
+    const {data} = await http.get<User>("/users/detail")
+    return data;
+  } catch (error) {
+    return null;
+  }
 }

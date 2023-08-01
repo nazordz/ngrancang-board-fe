@@ -33,36 +33,10 @@ import FormProjectDialog from "../dialogs/FormProjectDialog";
 import { useAppSelector } from "@/store/hooks";
 import { LinkBehavior } from "@/theme";
 import { menuList } from "@/utils/menuList";
+import { getUser } from "@/services/AuthenticationService";
 
 const drawerWidth = 240;
 
-const menus: IMenu[] = [
-  // {
-  //   icon: MapIcon,
-  //   link: '/backoffice',
-  //   title: 'Roadmap'
-  // },
-  {
-    icon: FormatListNumberedIcon,
-    link: '/backlog',
-    title: 'Backlog'
-  },
-  {
-    icon: DirectionsRunIcon,
-    link: '/active-sprint',
-    title: 'Active Sprint'
-  },
-  // {
-  //   icon: ChecklistIcon,
-  //   link: '/issues',
-  //   title: 'Issues'
-  // },
-  {
-    icon: SettingsIcon,
-    link: '/settings',
-    title: 'Pengaturan Project'
-  },
-]
 
 export function isMenuActive(
   to: string,
@@ -78,6 +52,7 @@ export function isMenuActive(
 const BackofficeLayout: React.FC = () => {
   const location = useLocation();
   const project = useAppSelector(state => state.navbarSlice.selectedProject)
+  const currentUser = getUser()
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -114,16 +89,21 @@ const BackofficeLayout: React.FC = () => {
           </List>
           <Divider/>
           <List>
-            {menuList.map((menu, index) => (
-              <ListItem key={index} disablePadding href={menu.link} component={LinkBehavior}>
-                <ListItemButton selected={isMenuActive(menu.link, location.pathname, true)} >
-                  <ListItemIcon>
-                    <menu.icon />
-                  </ListItemIcon>
-                  <ListItemText primaryTypographyProps={{color: 'black'}} primary={menu.title} />
-                </ListItemButton>
-              </ListItem>
-            ))}
+            {menuList.map((menu, index) => {
+              if (currentUser?.roles.some(x => menu.roles.some(y => y == x.name))) {
+                return (
+                  <ListItem key={index} disablePadding href={menu.link} component={LinkBehavior}>
+                    <ListItemButton selected={isMenuActive(menu.link, location.pathname, true)} >
+                      <ListItemIcon>
+                        <menu.icon />
+                      </ListItemIcon>
+                      <ListItemText primaryTypographyProps={{color: 'black'}} primary={menu.title} />
+                    </ListItemButton>
+                  </ListItem>
+                )
+              }
+              return
+            })}
 
           </List>
         </Box>

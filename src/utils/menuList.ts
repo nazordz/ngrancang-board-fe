@@ -7,6 +7,7 @@ import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
 import SettingsIcon from '@mui/icons-material/Settings';
 import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 import { IMenu } from "@/models";
+import GroupIcon from '@mui/icons-material/Group';
 
 export interface IMenuList {
   to: string;
@@ -25,21 +26,31 @@ export const menuList: IMenu[] = [
   {
     icon: FormatListNumberedIcon,
     link: '/backlog',
-    title: 'Backlog'
+    title: 'Backlog',
+    roles: ['ROLE_USER', 'ROLE_ADMIN']
   },
   {
     icon: DirectionsRunIcon,
     link: '/active-sprint',
-    title: 'Active Sprint'
+    title: 'Active Sprint',
+    roles: ['ROLE_USER', 'ROLE_ADMIN']
   },
   // {
   //   icon: ChecklistIcon,
   //   link: '/issues',
-  //   title: 'Issues'
+  //   title: 'Issues',
   // },
+  {
+    icon: GroupIcon,
+    link: '/users',
+    title: 'User manajemen',
+    roles: ['ROLE_ADMIN']
+  },
   {
     icon: SettingsIcon,
     link: '/settings',
-    title: 'Pengaturan Project'
+    title: 'Pengaturan Project',
+    roles: ['ROLE_USER', 'ROLE_ADMIN']
   },
+
 ];

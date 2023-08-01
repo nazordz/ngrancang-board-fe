@@ -22,6 +22,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { SnackbarState } from "@/store/slices/snackbarSlice";
 import { showSnackbar } from "@/store/slices/snackbarSlice";
 import { register } from "@/services/AuthenticationService";
+import { ISignupRequest } from "@/models";
 const validationSchema = Yup.object().shape({
   name: Yup.string().required("Nama harus diisi"),
   email: Yup.string()
@@ -102,7 +103,7 @@ const Register: React.FC = () => {
                 placeholder="Masukan nama"
                 onChange={formik.handleChange}
                 value={formik.values.name}
-                error={Boolean(formik.errors.name)}
+                error={formik.touched.name && Boolean(formik.errors.name)}
                 helperText={formik.errors.name}
               />
               <TextField
@@ -112,7 +113,7 @@ const Register: React.FC = () => {
                 placeholder="Masukan email"
                 onChange={formik.handleChange}
                 value={formik.values.email}
-                error={Boolean(formik.errors.email)}
+                error={formik.touched.email && Boolean(formik.errors.email)}
                 helperText={formik.errors.email}
               />
               <TextField
@@ -123,7 +124,7 @@ const Register: React.FC = () => {
                 placeholder="Masukan nomor telepon"
                 onChange={formik.handleChange}
                 value={formik.values.phone}
-                error={Boolean(formik.errors.phone)}
+                error={formik.touched.phone && Boolean(formik.errors.phone)}
                 helperText={formik.errors.phone}
               />
               <TextField
@@ -133,7 +134,7 @@ const Register: React.FC = () => {
                 placeholder="Masukan posisi"
                 onChange={formik.handleChange}
                 value={formik.values.position}
-                error={Boolean(formik.errors.position)}
+                error={formik.touched.position && Boolean(formik.errors.position)}
                 helperText={formik.errors.position}
               />
               <TextField
@@ -144,7 +145,7 @@ const Register: React.FC = () => {
                 placeholder="Masukan password"
                 onChange={formik.handleChange}
                 value={formik.values.password}
-                error={Boolean(formik.errors.password)}
+                error={formik.touched.password && Boolean(formik.errors.password)}
                 helperText={formik.errors.password}
                 InputProps={{
                   endAdornment: (
