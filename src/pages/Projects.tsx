@@ -26,9 +26,10 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import dayjs from 'dayjs'
 import ProjectDialog from '@/components/dialogs/ProjectDialog'
 import SearchIcon from '@mui/icons-material/Search';
-import { useAppDispatch } from '@/store/hooks'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { selectProject } from '@/store/slices/navbarSlice'
 import { useNavigate } from 'react-router-dom'
+import { toggleDialogProject } from '@/store/slices/formProjectSlice'
 
 const tableHeads = [
   'Nama', 'Key', 'Dibuat oleh', 'Aksi'
@@ -38,11 +39,10 @@ const Projects: React.FC = () => {
   const [tableData, setTableData] = useState<Pagination<Project> | null>(null);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [search, setSearch] = useState('');
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-
+  const projectDialog = useAppSelector(state => state.formProjectDialog)
   async function onReady() {
     var tableData = await fetchPaginateProjects();
     setTableData(tableData);
@@ -69,9 +69,9 @@ const Projects: React.FC = () => {
   return (
     <Box sx={{ display: "flex" }}>
       <ProjectDialog
-        isOpen={isDialogOpen}
+        isOpen={projectDialog.isOpen}
         onSuccess={() => {
-          setIsDialogOpen(false)
+          dispatch(toggleDialogProject())
           onReady()
         }}
       />
@@ -90,7 +90,7 @@ const Projects: React.FC = () => {
             <Typography variant='h1'>Projects</Typography>
           </Grid>
           <Grid item md={2} container justifyContent='flex-end'>
-            <Button variant='contained' onClick={() => setIsDialogOpen(true)}>
+            <Button variant='contained' onClick={() => dispatch(toggleDialogProject())}>
               Buat project
             </Button>
           </Grid>
