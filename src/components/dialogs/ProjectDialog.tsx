@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { toggleDialogProject } from "@/store/slices/formProjectSlice";
+import { closeProjectDialog, setFormProjectId, toggleDialogProject } from "@/store/slices/formProjectSlice";
 import {
   Avatar,
   Box,
@@ -15,14 +15,14 @@ import {
   Typography,
   styled,
 } from "@mui/material";
-import React from "react";
+import React, { useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { LoadingButton } from "@mui/lab";
 import { getAcronym } from "@/utils/helper";
 import ImageIcon from "@mui/icons-material/Image";
 import { FormProjectRequest } from "@/models";
-import { saveProject } from "@/services/ProjectService";
+import { fetchProjectById, saveProject } from "@/services/ProjectService";
 import { showSnackbar } from "@/store/slices/snackbarSlice";
 
 const validationSchema = Yup.object().shape({
@@ -46,6 +46,9 @@ interface IProps {
 
 const ProjectDialog: React.FC<IProps> = (props) => {
   const dispatch = useAppDispatch();
+  const projectId = useAppSelector(state => state.formProjectDialog.id)
+  const isOpen = useAppSelector(state => state.formProjectDialog.isOpen)
+  const [profilePicture, setProfilePicture] = React.useState('');
 
   const initialValues: FormProjectRequest = {
     name: "",
@@ -53,6 +56,26 @@ const ProjectDialog: React.FC<IProps> = (props) => {
     key: "",
     avatar: null,
   };
+
+  async function fetchProject(id: string) {
+    var myProject = await fetchProjectById(id)
+    if (myProject) {
+      formik.setValues({
+        key: myProject.key,
+        name: myProject.name,
+        description: myProject.description,
+        avatar: null
+      })
+      setProfilePicture(myProject.avatar)
+
+    }
+  }
+
+  useEffect(() => {
+    if (isOpen && projectId) {
+      fetchProject(projectId)
+    }
+  }, [isOpen, projectId])
 
   const formik = useFormik({
     initialValues,
@@ -74,13 +97,20 @@ const ProjectDialog: React.FC<IProps> = (props) => {
           variant: 'warning'
         }))
       }
+      dispatch(closeProjectDialog())
+      setProfilePicture('')
     },
   });
+
+  function closeDialog() {
+    dispatch(closeProjectDialog())
+    setProfilePicture('')
+  }
 
   return (
     <Dialog
       open={props.isOpen}
-      onClose={() => dispatch(toggleDialogProject())}
+      onClose={() => closeDialog()}
     >
       <DialogTitle>Form Project</DialogTitle>
       <DialogContent>
@@ -138,6 +168,14 @@ const ProjectDialog: React.FC<IProps> = (props) => {
                 {formik.values.avatar ? (
                   <Avatar
                     src={URL.createObjectURL(formik.values.avatar)}
+                    sx={{
+                      width: 128,
+                      height: 128,
+                    }}
+                  />
+                ) : profilePicture ? (
+                  <Avatar
+                    src={import.meta.env.VITE_IMAGE_BASE + profilePicture}
                     sx={{
                       width: 128,
                       height: 128,

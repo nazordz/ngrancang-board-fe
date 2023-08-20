@@ -8,6 +8,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 import { IMenu } from "@/models";
 import GroupIcon from '@mui/icons-material/Group';
+import SummarizeIcon from '@mui/icons-material/Summarize';
 
 export interface IMenuList {
   to: string;
@@ -35,6 +36,12 @@ export const menuList: IMenu[] = [
     title: 'Active Sprint',
     roles: ['ROLE_USER', 'ROLE_ADMIN']
   },
+  {
+    icon: SummarizeIcon,
+    link: '/report',
+    title: 'Sprint Report',
+    roles: ['ROLE_USER', 'ROLE_ADMIN']
+  },
   // {
   //   icon: ChecklistIcon,
   //   link: '/issues',
@@ -43,7 +50,7 @@ export const menuList: IMenu[] = [
   {
     icon: GroupIcon,
     link: '/users',
-    title: 'User manajemen',
+    title: 'User Management',
     roles: ['ROLE_ADMIN']
   },
   {

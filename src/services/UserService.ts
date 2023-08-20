@@ -1,4 +1,4 @@
-import { Pagination, User, UserProfileForm } from "@/models";
+import { Pagination, UpdateUserRequest, User, UserProfileForm } from "@/models";
 import http from "@/utils/http";
 
 export async function fetchAlluser() {
@@ -55,5 +55,32 @@ export async function updateCurrentUser(form: UserProfileForm) {
     return data;
   } catch (error) {
     return null;
+  }
+}
+
+export async function fetchUserByid(id: string) {
+  try {
+    const { data } = await http.get<User>(`/users/${id}`);
+    return data;
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function updateUser(userId: string, request: UpdateUserRequest) {
+  try {
+    const { data } = await http.put<User>(`/users/${userId}`, request);
+    return data;
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function deleteUserById(userId: string) {
+  try {
+    await http.delete(`/users/${userId}`);
+    return true;
+  } catch (error) {
+    return false;
   }
 }

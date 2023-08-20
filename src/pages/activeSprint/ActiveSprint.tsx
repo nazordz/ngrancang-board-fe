@@ -14,7 +14,7 @@ import {
   DropResult,
   DraggableLocation,
 } from "react-beautiful-dnd";
-import { endSprint, fetchActiveSprint } from "@/services/SprintService";
+import { createActiveSprintLog, endSprint, fetchActiveSprint } from "@/services/SprintService";
 import { InputStory, IssueStatusEnum, Sprint, Story } from "@/models";
 import { StrictModeDroppable } from "@/components/global/StrictModeDroppable";
 import { enumFromStringValue, getAcronym } from "@/utils/helper";
@@ -210,6 +210,8 @@ const ActiveSprint: React.FC = () => {
     const { source, destination } = result;
     // dropped outside the list
     if (!destination) return;
+    const selectedStoryId = result.draggableId;
+    const selectedStory = sprint?.stories.find(s => s.id == result.draggableId)
 
     if (source.droppableId === destination.droppableId) {
       const items = reorder(
@@ -236,6 +238,13 @@ const ActiveSprint: React.FC = () => {
 
         setDraggedList(destination.droppableId, resultDestination);
         updateListStoryInActiveSprint(resultDestination, sprint?.id);
+
+        createActiveSprintLog({
+          sprint_id: sprint!.id,
+          story_id: selectedStoryId,
+          status: enumFromStringValue(IssueStatusEnum, destination.droppableId)!,
+          story_point: selectedStory?.story_point || 0,
+        })
       }
     }
   }
@@ -270,8 +279,8 @@ const ActiveSprint: React.FC = () => {
       />
       <ConfirmDialog
         isOpen={showConfirmDialog}
-        title="Anda yakin untuk menyelesaikan sprint?"
-        message="Sprint akan diakhiri"
+        title="Anda yakin untuk mengakhiri sprint?"
+        message="Story yang belum done akan dipindahkan ke backlog"
         onConfirm={() => finishSprint()}
         onCancel={() => toggleFinishSprintDialog()}
       />
@@ -282,13 +291,15 @@ const ActiveSprint: React.FC = () => {
         <Typography variant="h1">Active Sprint</Typography>
       </Grid>
       <Grid item md={6} sx={{display: 'flex', justifyContent: 'flex-end'}}>
-        <Button
-          onClick={() => toggleFinishSprintDialog()}
-          variant="contained"
-          color="primary"
-        >
-          Selesaikan Sprint
-        </Button>
+        {sprint && (
+          <Button
+            onClick={() => toggleFinishSprintDialog()}
+            variant="contained"
+            color="primary"
+          >
+            Selesaikan Sprint
+          </Button>
+        )}
       </Grid>
       <Grid item md={12} lg={12} mt={2}>
         <DragDropContext onDragEnd={onDragEnd}>

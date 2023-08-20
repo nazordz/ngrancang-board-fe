@@ -107,14 +107,19 @@ export interface Epic {
 export interface Sprint {
   id: string;
   project_id: string;
+  project: Project | null;
   user_id: string;
+  user: User | null;
   sprint_name: string;
   start_date: string;
   end_date: string;
   actual_start_date: string | null;
   actual_end_date: string | null;
+  plan_story_point: number;
+  actual_story_point: number;
   is_running: boolean;
   sprint_goal: string | null;
+  sequence: number;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -157,6 +162,7 @@ export interface Story {
   epic: Epic;
   epic_id: string;
   sub_tasks: SubTask[];
+  active_sprint_logs: ActiveSprintLog[];
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -202,7 +208,7 @@ export interface SubTask {
   story: Story;
   attachments: string | null;
   description: string;
-  status: string;
+  status: IssueStatusEnum;
   assignee_id: string | null;
   assignee: User | null;
   created_at: string;
@@ -219,7 +225,9 @@ export interface InputSubTask {
   isEditing: boolean;
   sequence: number;
   assignee_id: string | null;
+  status: IssueStatusEnum;
   avatarAnchorEl: HTMLButtonElement | null;
+  statusAnchorEl: HTMLDivElement | null;
 }
 
 export interface StoryForm {
@@ -229,7 +237,7 @@ export interface StoryForm {
   status: IssueStatusEnum;
   assignee_id: string;
   story_point: number;
-  sprint: string;
+  // sprint: string;
   epic_id: string;
 }
 
@@ -262,4 +270,31 @@ export interface UserProfileForm {
   phone: string;
   changePassword: boolean;
   newPassword: string;
+}
+
+export interface CreateActiveSprintLogRequest {
+  story_id: string;
+  sprint_id: string;
+  story_point: number;
+  status: IssueStatusEnum;
+}
+
+export interface ActiveSprintLog {
+  id: string;
+  story_id: string;
+  sprint_id: string;
+  story_point: number;
+  status: IssueStatusEnum;
+  is_start: boolean;
+  is_end: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UpdateUserRequest {
+  name: string;
+  email: string;
+  phone: string;
+  position: string;
+  password?: string | null;
 }

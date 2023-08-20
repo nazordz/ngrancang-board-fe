@@ -72,15 +72,6 @@ const BackofficeTopNavigation: React.FC = () => {
         >
           <Box component="img" src={logo} alt="image" sx={{ height: "50px" }} />
         </Box>
-        {/* <Box>
-          <Button
-            variant="text"
-            color="primary"
-            endIcon={<ExpandMoreIcon />}
-          >
-            Your Work
-          </Button>
-        </Box> */}
         <Box>
           <Button
             variant="text"
@@ -111,7 +102,10 @@ const BackofficeTopNavigation: React.FC = () => {
               projects.content?.map((project, index) => (
                 <MenuItem
                   key={index}
-                  onClick={() => dispatch(selectProject(project))}
+                  onClick={() => {
+                    dispatch(selectProject(project))
+                    navigate(0)
+                  }}
                 >
                   <ListItemIcon>
                     <AssignmentTurnedInIcon />

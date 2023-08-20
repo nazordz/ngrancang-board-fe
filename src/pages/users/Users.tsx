@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import {
+  Button,
   Checkbox,
   Grid,
+  IconButton,
   InputAdornment,
   Table,
   TableBody,
@@ -14,10 +16,14 @@ import {
   Typography,
 } from "@mui/material";
 import { Pagination, User } from "@/models";
-import { fetchPaginateUsers, updateStatusUser } from "@/services/UserService";
+import { deleteUserById, fetchPaginateUsers, updateStatusUser } from "@/services/UserService";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import SearchIcon from "@mui/icons-material/Search";
 import { showSnackbar } from "@/store/slices/snackbarSlice";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import FormUserDialog from "@/components/dialogs/FormUserDialog";
+import ConfirmDialog from "@/components/dialogs/ConfirmDialog";
 
 const Users: React.FC = () => {
   const [tableData, setTableData] = useState<Pagination<User> | null>(null);
@@ -25,6 +31,9 @@ const Users: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [search, setSearch] = useState("");
   const dispatch = useAppDispatch();
+  const [showUserDialog, setShowUserDialog] = useState(false);
+  const [selectedUserid, setSelectedUserid] = useState("");
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
 
   async function fetchData() {
     const paginateUsers = await fetchPaginateUsers(page, rowsPerPage, search);
@@ -55,12 +64,55 @@ const Users: React.FC = () => {
     fetchData();
   }, [page, rowsPerPage]);
 
+  function closeDialog() {
+    setShowUserDialog(false)
+    setSelectedUserid('')
+    fetchData()
+  }
+
+  function onEditUser(id: string): void {
+    setSelectedUserid(id);
+    setShowUserDialog(true);
+  }
+
+  function onDeleteUser(id: string) {
+    setShowConfirmDialog(true)
+    setSelectedUserid(id)
+  }
+
+  async function confirmDelete() {
+    await deleteUserById(selectedUserid)
+    setShowConfirmDialog(false)
+    setSelectedUserid("")
+    fetchData()
+  }
+
   return (
     <Grid container>
-      <Grid item md={10}>
-        <Typography variant="h1">User Manajemen</Typography>
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        title="Anda yakin untuk menghapus user ini?"
+        message="User akan dihapus"
+        onConfirm={() => confirmDelete()}
+        onCancel={() => setShowConfirmDialog(false)}
+      />
+      <FormUserDialog
+        isOpen={showUserDialog}
+        onClose={() => setShowUserDialog(false)}
+        onSaved={() => closeDialog()}
+        id={selectedUserid}
+      />
+      <Grid item md={9}>
+        <Typography variant="h1">User Management</Typography>
       </Grid>
-      <Grid item md={2}>
+      <Grid item md={3} container justifyContent="space-around">
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setShowUserDialog(true)}
+        >
+          Buat User
+        </Button>
         <TextField
           value={search}
           onChange={handleSearch}
@@ -86,6 +138,7 @@ const Users: React.FC = () => {
                 <TableCell>No. Telp</TableCell>
                 <TableCell>Posisi</TableCell>
                 <TableCell>Aktif</TableCell>
+                <TableCell>Aksi</TableCell>
               </TableRow>
             </TableHead>
             {tableData ? (
@@ -102,9 +155,17 @@ const Users: React.FC = () => {
                         value={user.is_active}
                         onChange={(event) => {
                           let currentStatus = event.target.value == "true";
-                          changeUserStatus(user.id, !currentStatus)
+                          changeUserStatus(user.id, !currentStatus);
                         }}
                       />
+                    </TableCell>
+                    <TableCell>
+                      <IconButton color="info" onClick={() => onEditUser(user.id)}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton color="error" onClick={() => onDeleteUser(user.id)}>
+                        <DeleteIcon />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))}

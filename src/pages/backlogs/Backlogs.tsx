@@ -48,6 +48,9 @@ import FormSprintDialog from "@/components/dialogs/FormSprintDialog";
 import { endSprint, startSprint } from "@/services/SprintService";
 import EpicDialog from "@/components/dialogs/EpicDialog";
 import { showSnackbar } from "@/store/slices/snackbarSlice";
+import ConfirmDialog, {
+  IconfirmDialog,
+} from "@/components/dialogs/ConfirmDialog";
 const grid = 8;
 
 const getItemStyle = (
@@ -74,11 +77,13 @@ const getItemStyle = (
   ...draggableStyle,
 });
 
-const getListStyle = ({ isDraggingOver }: DroppableStateSnapshot): React.CSSProperties => ({
+const getListStyle = ({
+  isDraggingOver,
+}: DroppableStateSnapshot): React.CSSProperties => ({
   background: isDraggingOver ? "lightblue" : "lightgrey",
   // padding: grid,
   width: `100%`,
-  cursor: 'move'
+  cursor: "move",
 });
 
 const Backlogs: React.FC = () => {
@@ -87,15 +92,30 @@ const Backlogs: React.FC = () => {
   );
   const [crumbs, setCrumbs] = useState<LinkBreadcrumb[]>([]);
   const [sprints, setSprints] = useState<Sprint[]>([]);
-  const [inputSprintStories, setInputSprintStories] = useState<DroppableSprint[]>([]);
+  const [inputSprintStories, setInputSprintStories] = useState<
+    DroppableSprint[]
+  >([]);
   const [stories, setStories] = useState<Story[]>([]);
-  const [inputBacklogStories, setInputBacklogStories] = useState<InputStory[]>([]);
-  const [formStoryDialog, setFormStoryDialog] =
-    useState<FormStoryDialogProps>({
-      isOpen: false,
-    });
-  const [showSprintDialog, setShowSprintDialog] = useState(false)
-  const [showEpicDialog, setShowEpicDialog] = useState(false)
+  const [inputBacklogStories, setInputBacklogStories] = useState<InputStory[]>(
+    []
+  );
+  const [formStoryDialog, setFormStoryDialog] = useState<FormStoryDialogProps>({
+    isOpen: false,
+  });
+  const [showSprintDialog, setShowSprintDialog] = useState(false);
+  const [showEpicDialog, setShowEpicDialog] = useState(false);
+  const [confirmDialogState, setConfirmDialogState] = useState<IconfirmDialog>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onCancel: () => {
+      setConfirmDialogState({
+        ...confirmDialogState,
+        isOpen: false,
+      });
+    },
+    onConfirm() {},
+  });
   const dispatch = useAppDispatch();
   const reorder = (
     list: InputStory[],
@@ -170,22 +190,80 @@ const Backlogs: React.FC = () => {
           setInputSprintStories(inputSprintStories);
         }
       }
-    } else { // move
+    } else {
+      // move
       var sourceStories: InputStory[] = [];
       var destStories: InputStory[] = [];
+      var isSourceHasEnded = false;
+      var isDestinationHasEnded = false;
+      var isSourceRunning = false;
+      var isDestinationRunning = false;
       if (sInd == "droppable-backlog") {
         sourceStories = inputBacklogStories;
       } else {
         let lookISS = inputSprintStories.find((s) => s.id == sInd);
         sourceStories = lookISS?.inputStories || [];
+        const selectedSprint = sprints.find((s) => (s.id == sInd));
+        isSourceHasEnded = Boolean(selectedSprint?.actual_end_date);
+        isSourceRunning = Boolean(selectedSprint?.is_running)
       }
+
       if (dInd == "droppable-backlog") {
         destStories = inputBacklogStories;
       } else {
         let lookDest = inputSprintStories.find((s) => s.id == dInd);
         destStories = lookDest?.inputStories || [];
+        const selectedSprint = sprints.find((s) => (s.id == dInd));
+        isDestinationHasEnded = Boolean(selectedSprint?.actual_end_date);
+        isDestinationRunning = Boolean(selectedSprint?.is_running)
       }
 
+      // cannot move
+      if (isSourceHasEnded || isDestinationHasEnded) {
+        return;
+      }
+
+      // alert confirmation
+      if (isDestinationRunning || isSourceRunning) {
+          setConfirmDialogState({
+            ...confirmDialogState,
+            isOpen: true,
+            title: "Anda yakin untuk memindahkan Story?",
+            message: "Perubahan dapat berdampak pada report",
+            onConfirm() {
+              movingItem();
+              setConfirmDialogState({ ...confirmDialogState, isOpen: false });
+            },
+          });
+      } else {
+        movingItem();
+      }
+
+      // Either running or not running yet
+      // if (!hasEnded) {
+        // confirmation to move in/out active sprint
+        // if (
+        //   (sInd == "droppable-backlog" && dInd != "droppable-backlog") || //  && isRunning
+        //   (dInd == "droppable-backlog" && sInd != "droppable-backlog") //  && isRunning
+        // ) {
+        //   setConfirmDialogState({
+        //     ...confirmDialogState,
+        //     isOpen: true,
+        //     message: "Report dapat dilihat setelah sprint diakhiri",
+        //     title: "Anda yakin untuk memulai Sprint?",
+        //     onConfirm() {
+        //       movingItem();
+        //       setConfirmDialogState({ ...confirmDialogState, isOpen: false });
+        //     },
+        //   });
+        // }
+        // else {
+        //   movingItem();
+        // }
+      // }
+    }
+
+    function movingItem() {
       if (destination) {
         const result = move(sourceStories, destStories, source, destination);
         const resultSource = result.get(sInd);
@@ -301,7 +379,7 @@ const Backlogs: React.FC = () => {
         selectedStory.summary,
         selectedProject.id
       );
-      fetchData()
+      fetchData();
     }
   }
 
@@ -315,7 +393,9 @@ const Backlogs: React.FC = () => {
     return stories.find((e) => e.id == id);
   }
   function findStoryInSprintById(sprintId: string, storyId: string) {
-    return StoryInSprint.find((e) => e.id == sprintId)?.stories.find(x => x.id == storyId);
+    return StoryInSprint.find((e) => e.id == sprintId)?.stories.find(
+      (x) => x.id == storyId
+    );
   }
 
   function openFormStoryDialog(id: string) {
@@ -330,27 +410,54 @@ const Backlogs: React.FC = () => {
     setShowSprintDialog(!showSprintDialog);
   }
 
-  function onSuccessStory () {
+  function onSuccessStory() {
     toggleFormSprintDialog();
     fetchData();
   }
 
   const StoryInSprint = useMemo(() => {
     return inputSprintStories;
-  }, [inputSprintStories])
+  }, [inputSprintStories]);
 
   async function onStartSprint(sprintId: string) {
-    await startSprint(sprintId);
-    dispatch(showSnackbar({
+    setConfirmDialogState({
+      ...confirmDialogState,
       isOpen: true,
-      message: "Sprint telah dimulai",
-      variant: 'success'
-    }))
-    fetchData();
+      message: "Selama sprint berjalan log akan disimpan",
+      title: "Anda yakin untuk memulai Sprint?",
+      async onConfirm() {
+        await startSprint(sprintId);
+        dispatch(
+          showSnackbar({
+            isOpen: true,
+            message: "Sprint telah dimulai",
+            variant: "success",
+          })
+        );
+        setConfirmDialogState({ ...confirmDialogState, isOpen: false });
+        fetchData();
+      },
+    });
   }
   async function onEndSprint(sprintId: string) {
-    await endSprint(sprintId);
-    fetchData();
+    setConfirmDialogState({
+      ...confirmDialogState,
+      isOpen: true,
+      title: "Anda yakin untuk mengakhiri Sprint?",
+      message: "Story yang belum done akan dipindahkan ke backlog",
+      async onConfirm() {
+        await endSprint(sprintId);
+        fetchData();
+        dispatch(
+          showSnackbar({
+            isOpen: true,
+            message: "Sprint telah diakhiri",
+            variant: "success",
+          })
+        );
+        setConfirmDialogState({ ...confirmDialogState, isOpen: false });
+      },
+    });
   }
 
   function toggleEpicDialog() {
@@ -358,7 +465,8 @@ const Backlogs: React.FC = () => {
   }
 
   return (
-    <Grid container>
+    <Grid container my={2}>
+      <ConfirmDialog {...confirmDialogState} />
       <FormStoryDialog
         id={formStoryDialog.id}
         isOpen={formStoryDialog.isOpen}
@@ -370,10 +478,7 @@ const Backlogs: React.FC = () => {
         onClose={toggleFormSprintDialog}
         onSuccess={onSuccessStory}
       />
-      <EpicDialog
-        isOpen={showEpicDialog}
-        onClose={toggleEpicDialog}
-      />
+      <EpicDialog isOpen={showEpicDialog} onClose={toggleEpicDialog} />
       <Grid item md={12}>
         <BackofficeBreacrumbs links={crumbs} />
       </Grid>
@@ -421,15 +526,16 @@ const Backlogs: React.FC = () => {
               </Grid>
               <Grid item md={6} justifyContent="flex-end" container>
                 <Stack direction="column" justifyContent="flex-end" py={2}>
-                  {(spr.is_running && spr.actual_end_date == null) && (
+                  {spr.is_running && spr.actual_end_date == null && (
                     <Button
                       variant="contained"
                       color="secondary"
                       onClick={() => onEndSprint(spr.id)}
                     >
-                      Selesaikan Sprint</Button>
+                      Selesaikan Sprint
+                    </Button>
                   )}
-                  {(!spr.is_running && spr.actual_start_date == null) && (
+                  {!spr.is_running && spr.actual_start_date == null && (
                     <Button
                       variant="contained"
                       color="secondary"
@@ -438,9 +544,13 @@ const Backlogs: React.FC = () => {
                       Mulai Sprint
                     </Button>
                   )}
-                  {(!spr.is_running && spr.actual_start_date && spr.actual_end_date) && (
-                    <Typography variant="body1" color="darkgreen">Sprint Selesai</Typography>
-                  )}
+                  {!spr.is_running &&
+                    spr.actual_start_date &&
+                    spr.actual_end_date && (
+                      <Typography variant="body1" color="darkgreen">
+                        Sprint Selesai
+                      </Typography>
+                    )}
                 </Stack>
               </Grid>
               <StrictModeDroppable droppableId={spr.id}>
@@ -483,15 +593,29 @@ const Backlogs: React.FC = () => {
                                 {item.summary}
                               </Stack>
                               <Stack gap={1} direction="row">
-                                {findStoryInSprintById(spr.id, item.id)?.epic != null && (
-                                  <Tooltip title={findStoryInSprintById(spr.id, item.id)?.epic.summary}>
-                                    <Chip color="info" label={findStoryInSprintById(spr.id, item.id)?.epic?.key}/>
+                                {findStoryInSprintById(spr.id, item.id)?.epic !=
+                                  null && (
+                                  <Tooltip
+                                    title={
+                                      findStoryInSprintById(spr.id, item.id)
+                                        ?.epic.summary
+                                    }
+                                  >
+                                    <Chip
+                                      color="info"
+                                      label={
+                                        findStoryInSprintById(spr.id, item.id)
+                                          ?.epic?.key
+                                      }
+                                    />
                                   </Tooltip>
                                 )}
-                                {findStoryInSprintById(spr.id, item.id)?.assignee != null && (
+                                {findStoryInSprintById(spr.id, item.id)
+                                  ?.assignee != null && (
                                   <Avatar sx={{ bgcolor: "primary.main" }}>
                                     {getAcronym(
-                                      findStoryInSprintById(spr.id, item.id)?.assignee?.name!
+                                      findStoryInSprintById(spr.id, item.id)
+                                        ?.assignee?.name!
                                     ).substring(0, 2)}
                                   </Avatar>
                                 )}
@@ -511,7 +635,8 @@ const Backlogs: React.FC = () => {
                                     color="white"
                                     textAlign="center"
                                   >
-                                    {findStoryInSprintById(spr.id, item.id)?.story_point || "-"}
+                                    {findStoryInSprintById(spr.id, item.id)
+                                      ?.story_point || "-"}
                                   </Typography>
                                 </Box>
                               </Stack>
@@ -611,6 +736,16 @@ const Backlogs: React.FC = () => {
                               {item.summary}
                             </Stack>
                             <Stack gap={1} direction="row">
+                              {findStoryById(item.id)?.epic != null && (
+                                <Tooltip
+                                  title={findStoryById(item.id)?.epic.summary}
+                                >
+                                  <Chip
+                                    color="info"
+                                    label={findStoryById(item.id)?.epic?.key}
+                                  />
+                                </Tooltip>
+                              )}
                               {findStoryById(item.id)?.assignee != null && (
                                 <Avatar sx={{ bgcolor: "primary.main" }}>
                                   {getAcronym(

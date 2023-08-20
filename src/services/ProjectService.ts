@@ -55,9 +55,18 @@ async function updateProject(request: IFormProject, id: string) {
   }
 }
 
+async function deleteProject(projectId: string) {
+  try {
+    await http.delete(`/projects/${projectId}`)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 export {
   updateProject,
   fetchProjectById,
   saveProject,
-  fetchPaginateProjects
+  fetchPaginateProjects,
+  deleteProject
 }

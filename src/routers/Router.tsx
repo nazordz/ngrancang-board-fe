@@ -20,6 +20,7 @@ const Issue = lazy(() => import("@/pages/issues"));
 const ActiveSprint = lazy(() => import("@/pages/activeSprint/ActiveSprint"));
 const Users = lazy(() => import("@/pages/users/Users"));
 const Profile = lazy(() => import("@/pages/Profile"));
+const ReportSprint = lazy(() => import("@/pages/reportSprint/ReportSprint"));
 
 const router: RouteObject[] = [
   {
@@ -130,6 +131,20 @@ const router: RouteObject[] = [
         element: <ActiveSprint />,
       },
     ],
+  },
+  {
+    path: 'report',
+    element: (
+      <ProtectedRoute>
+        <BackofficeLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <ReportSprint />
+      }
+    ]
   },
   {
     path: "/users",

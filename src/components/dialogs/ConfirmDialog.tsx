@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
-interface IProps {
+export interface IconfirmDialog {
   isOpen: boolean;
   onCancel: () => void;
   onConfirm: () => void;
@@ -18,7 +18,7 @@ interface IProps {
   message: string;
 }
 
-const ConfirmDialog: React.FC<IProps> = (props) => {
+const ConfirmDialog: React.FC<IconfirmDialog> = (props) => {
   return (
     <Dialog open={props.isOpen}>
       <DialogTitle>

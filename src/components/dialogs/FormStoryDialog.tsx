@@ -20,6 +20,7 @@ import {
   Avatar,
   Box,
   Button,
+  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -69,8 +70,13 @@ import {
   updateAssigneeSubTask,
   updateDescriptionSubTask,
   updateListSubTaskSequence,
+  updateStatusSubTask,
 } from "@/services/SubTaskService";
 import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
+import PopoverUsers from "../popovers/PopoverUsers";
+import ConfirmDeleteStoryDialog from "./ConfirmDeleteStoryDialog";
+import ChipIssueStatus from "../global/ChipIssueStatus";
+import PopoverStatus from "../popovers/PopoverStatus";
 
 const getItemStyle = (
   isDragging: boolean,
@@ -117,7 +123,7 @@ const validationSchema = Yup.object().shape({
   ),
   status: Yup.mixed<IssueStatusEnum>().oneOf(Object.values(IssueStatusEnum)),
   assignee: Yup.string().nullable(),
-  sprint: Yup.string().nullable(),
+  // sprint: Yup.string().nullable(),
   epic: Yup.string().nullable(),
   story_point: Yup.number().min(0, "Minimal 0").nullable(),
 });
@@ -143,7 +149,7 @@ const FormStoryDialog: React.FC<FormStoryDialogProps> = (props) => {
       status: IssueStatusEnum.Todo,
       assignee_id: "",
       story_point: 0,
-      sprint: "",
+      // sprint: "",
       epic_id: "",
     },
     validationSchema,
@@ -197,6 +203,8 @@ const FormStoryDialog: React.FC<FormStoryDialogProps> = (props) => {
             assignee_id: st.assignee_id,
             sequence: st.sequence,
             avatarAnchorEl: null,
+            statusAnchorEl: null,
+            status: st.status
           }));
           setInputSubTasks(hahSubTasks);
         }
@@ -206,7 +214,7 @@ const FormStoryDialog: React.FC<FormStoryDialogProps> = (props) => {
           status: tempStory.status,
           story_point: tempStory.story_point,
           priority: tempStory.priority,
-          sprint: tempStory.sprint_id || "",
+          // sprint: tempStory.sprint_id || "",
           epic_id: tempStory.epic_id || "",
           assignee_id: tempStory.assignee_id || "",
         });
@@ -224,7 +232,9 @@ const FormStoryDialog: React.FC<FormStoryDialogProps> = (props) => {
       draft: true,
       isEditing: false,
       avatarAnchorEl: null,
+      statusAnchorEl: null,
       assignee_id: null,
+      status: IssueStatusEnum.Todo
     };
     setInputSubTasks([...inputSubTasks, newSubTask]);
   }
@@ -283,6 +293,8 @@ const FormStoryDialog: React.FC<FormStoryDialogProps> = (props) => {
           assignee_id: st.assignee_id,
           sequence: st.sequence,
           avatarAnchorEl: null,
+          statusAnchorEl: null,
+          status: st.status
         }));
         setInputSubTasks(hahSubTasks);
         setStory(tempStory)
@@ -293,6 +305,22 @@ const FormStoryDialog: React.FC<FormStoryDialogProps> = (props) => {
   function onChangeInputDraft(value: string, id: string) {
     var localSubTasks = [...inputSubTasks];
     localSubTasks.find((e) => e.id == id)!.description = value;
+    setInputSubTasks(localSubTasks);
+  }
+
+  function openPopoverStatus(
+    event: React.MouseEvent<HTMLDivElement>,
+    subTaskId: string
+  ) {
+    var localSubTasks = [...inputSubTasks];
+    localSubTasks.find((a) => a.id == subTaskId)!.statusAnchorEl =
+      event.currentTarget;
+    setInputSubTasks(localSubTasks);
+  }
+
+  function closePopoverStatus(subTaskId: string) {
+    var localSubTasks = [...inputSubTasks];
+    localSubTasks.find((a) => a.id == subTaskId)!.statusAnchorEl = null;
     setInputSubTasks(localSubTasks);
   }
 
@@ -378,9 +406,40 @@ const FormStoryDialog: React.FC<FormStoryDialogProps> = (props) => {
       );
     }
   }
+  async function onSubTaskUpdateStatus(
+    subTaskId: string,
+    status: IssueStatusEnum
+  ) {
+    var localSubTasks = [...inputSubTasks];
+    localSubTasks.find((e) => e.id == subTaskId)!.status = status;
+    setInputSubTasks(localSubTasks);
+    const newSubTask = await updateStatusSubTask(subTaskId, status);
+    var myStory = { ...story } as Story;
+    var mySub = myStory.sub_tasks.find((a) => a.id == subTaskId);
+    // var selectedAssignee = listUsers.find((a) => a.id == status);
+    if (mySub && newSubTask) {
+      mySub.status = status;
+      myStory.sub_tasks = [
+        ...myStory.sub_tasks.filter((a) => a.id != subTaskId),
+        mySub,
+      ];
+
+      setStory(myStory);
+      closePopoverStatus(subTaskId);
+      dispatch(
+        showSnackbar({
+          isOpen: true,
+          variant: "success",
+          message: "Status telah diubah",
+        })
+      );
+    }
+  }
 
   function toggleDeleteDialog() {
-    setShowConfirmDeleteDialog(!showConfirmDeleteDialog)
+    if (!story?.sprint?.is_running || !story?.sprint?.actual_end_date) {
+      setShowConfirmDeleteDialog(!showConfirmDeleteDialog)
+    }
   }
 
   async function handleDeleteStory() {
@@ -407,21 +466,7 @@ const FormStoryDialog: React.FC<FormStoryDialogProps> = (props) => {
 
   return (
     <React.Fragment>
-      <Dialog
-        open={showConfirmDeleteDialog}
-        onClose={() => setShowConfirmDeleteDialog(false)}
-      >
-        <DialogTitle>
-          Hapus story ?
-        </DialogTitle>
-        <DialogContent>
-          Apakah anda yaking untuk menghapusnya?
-        </DialogContent>
-        <DialogActions>
-          <Button variant="outlined" color="secondary" onClick={() => toggleDeleteDialog()}>Batal</Button>
-          <Button variant="contained" color="error" onClick={() => handleDeleteStory()}>Hapus</Button>
-        </DialogActions>
-      </Dialog>
+      {ConfirmDeleteStoryDialog(showConfirmDeleteDialog, setShowConfirmDeleteDialog, toggleDeleteDialog, handleDeleteStory)}
       <Dialog
         maxWidth="md"
         fullWidth={true}
@@ -607,20 +652,30 @@ const FormStoryDialog: React.FC<FormStoryDialogProps> = (props) => {
                                       direction="row"
                                       alignItems="center"
                                     >
+                                      <ChipIssueStatus
+                                        onClick={(e) =>
+                                          openPopoverStatus(e, item.id)
+                                        }
+                                        label={findSubTaskById(item.id)?.status}
+                                        status={findSubTaskById(item.id)!.status}
+                                        clickable
+                                      />
                                       {findSubTaskById(item.id)?.assignee !=
                                       null ? (
-                                        <IconButton
+                                        <>
+                                          <IconButton
                                           onClick={(e) =>
                                             openPopoverAvatar(e, item.id)
                                           }
-                                        >
-                                          <Avatar>
-                                            {getAcronym(
-                                              findSubTaskById(item.id)?.assignee
-                                                ?.name!
-                                            ).substring(0, 2)}
-                                          </Avatar>
-                                        </IconButton>
+                                          >
+                                            <Avatar>
+                                              {getAcronym(
+                                                findSubTaskById(item.id)?.assignee
+                                                  ?.name!
+                                              ).substring(0, 2)}
+                                            </Avatar>
+                                          </IconButton>
+                                        </>
                                       ) : (
                                         <IconButton
                                           onClick={(e) =>
@@ -638,52 +693,8 @@ const FormStoryDialog: React.FC<FormStoryDialogProps> = (props) => {
                                   </Box>
                                 )}
                               </Draggable>
-                              <Popover
-                                id={`popover-${item.id}`}
-                                open={item.avatarAnchorEl != null}
-                                anchorEl={item.avatarAnchorEl}
-                                onClose={() => closePopoverAvatar(item.id)}
-                                anchorOrigin={{
-                                  vertical: "top",
-                                  horizontal: "left",
-                                }}
-                                transformOrigin={{
-                                  horizontal: "right",
-                                  vertical: "top",
-                                }}
-                              >
-                                <List
-                                  dense
-                                  sx={{
-                                    width: "100%",
-                                    maxWidth: 360,
-                                    bgcolor: "background.paper",
-                                  }}
-                                >
-                                  {listUsers.map((usr, i) => (
-                                    <ListItem key={i} disablePadding>
-                                      <ListItemButton
-                                        onClick={() =>
-                                          onSubTaskUpdateAssignee(
-                                            item.id,
-                                            usr.id
-                                          )
-                                        }
-                                      >
-                                        <ListItemAvatar>
-                                          <Avatar>
-                                            {getAcronym(usr.name).substring(
-                                              0,
-                                              2
-                                            )}
-                                          </Avatar>
-                                        </ListItemAvatar>
-                                        <ListItemText primary={usr.name} />
-                                      </ListItemButton>
-                                    </ListItem>
-                                  ))}
-                                </List>
-                              </Popover>
+                              {PopoverUsers(item, closePopoverAvatar, listUsers, onSubTaskUpdateAssignee)}
+                              {PopoverStatus(item, closePopoverStatus, onSubTaskUpdateStatus)}
                             </React.Fragment>
                           );
                         })}
@@ -691,9 +702,11 @@ const FormStoryDialog: React.FC<FormStoryDialogProps> = (props) => {
                       </Box>
                     )}
                   </StrictModeDroppable>
-                  <Button variant="text" onClick={() => onAddInputSubTask()}>
-                    + Buat Tugas
-                  </Button>
+                  { (story?.sprint?.actual_end_date == null) && (
+                    <Button variant="text" onClick={() => onAddInputSubTask()}>
+                      + Buat Tugas
+                    </Button>
+                  )}
                 </DragDropContext>
               </Box>
               <Grid container direction="row" rowGap={2}>
@@ -777,25 +790,6 @@ const FormStoryDialog: React.FC<FormStoryDialogProps> = (props) => {
                   </Select>
                 </Grid>
                 <Grid item md={6}>
-                  <Typography variant="body1">Sprint</Typography>
-                </Grid>
-                <Grid item md={3}>
-                  {sprints.length > 0 && (
-                    <Select
-                      fullWidth
-                      name="sprint"
-                      value={formik.values.sprint}
-                      onChange={formik.handleChange}
-                    >
-                      {sprints.map((a, i) => (
-                        <MenuItem key={i} value={a.id}>
-                          {a.sprint_name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                </Grid>
-                <Grid item md={6}>
                   <Typography variant="body1">Epic</Typography>
                 </Grid>
                 <Grid item md={3}>
@@ -818,13 +812,18 @@ const FormStoryDialog: React.FC<FormStoryDialogProps> = (props) => {
             </Stack>
           )}
         </DialogContent>
-        <DialogActions sx={{ justifyContent: "space-between" }}>
+        <DialogActions
+          sx={{ justifyContent: (!story?.sprint?.is_running && story?.sprint?.actual_end_date == null) ? 'space-between' : 'flex-end' }}
+        >
+        {(!story?.sprint?.is_running && story?.sprint?.actual_end_date == null) && (
           <Button
             onClick={() => toggleDeleteDialog()}
             variant="outlined"
             color="error">
             Hapus Story
           </Button>
+        )}
+        {story?.sprint?.actual_end_date == null && (
           <Stack direction="row" gap={1}>
             <Button
               variant="outlined"
@@ -842,6 +841,7 @@ const FormStoryDialog: React.FC<FormStoryDialogProps> = (props) => {
               Simpan
             </LoadingButton>
           </Stack>
+        )}
         </DialogActions>
       </Dialog>
     </React.Fragment>
@@ -849,3 +849,5 @@ const FormStoryDialog: React.FC<FormStoryDialogProps> = (props) => {
 };
 
 export default FormStoryDialog;
+
+

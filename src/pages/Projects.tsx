@@ -1,7 +1,7 @@
-import FormProjectDialog from '@/components/dialogs/FormProjectDialog'
+import React, { useEffect, useState } from 'react'
 import BackofficeTopNavigation from '@/components/global/BackofficeTopNavigation'
 import { Pagination, Project } from '@/models'
-import { fetchPaginateProjects } from '@/services/ProjectService'
+import { deleteProject, fetchPaginateProjects } from '@/services/ProjectService'
 import {
   AppBar,
   Box,
@@ -21,15 +21,17 @@ import {
   Typography,
   debounce
 } from '@mui/material'
-import React, { useEffect, useMemo, useState } from 'react'
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import dayjs from 'dayjs'
 import ProjectDialog from '@/components/dialogs/ProjectDialog'
 import SearchIcon from '@mui/icons-material/Search';
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { selectProject } from '@/store/slices/navbarSlice'
 import { useNavigate } from 'react-router-dom'
-import { toggleDialogProject } from '@/store/slices/formProjectSlice'
+import { openProjectDialog, setFormProjectId, toggleDialogProject } from '@/store/slices/formProjectSlice'
+import ConfirmDialog from '@/components/dialogs/ConfirmDialog'
+import { showSnackbar } from '@/store/slices/snackbarSlice'
 
 const tableHeads = [
   'Nama', 'Key', 'Dibuat oleh', 'Aksi'
@@ -43,6 +45,11 @@ const Projects: React.FC = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const projectDialog = useAppSelector(state => state.formProjectDialog)
+  const [showProjectDialog, setShowProjectDialog] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const selectedProjectId = useAppSelector(state => state.formProjectDialog.id)
+
+
   async function onReady() {
     var tableData = await fetchPaginateProjects();
     setTableData(tableData);
@@ -66,6 +73,30 @@ const Projects: React.FC = () => {
     fetchData()
   }, [page, rowsPerPage])
 
+  function onEdit(val: Project) {
+    // dispatch(openProjectDialog(id))
+    dispatch(selectProject(val))
+    navigate('/settings')
+  }
+
+  function onDelete(id: string) {
+    dispatch(setFormProjectId(id))
+    setShowConfirmDialog(true)
+  }
+
+  async function confirmDelete() {
+    await deleteProject(selectedProjectId)
+    setShowConfirmDialog(false)
+    dispatch(
+      showSnackbar({
+        isOpen: true,
+        message: "Project berhasil dihapus",
+        variant: "success",
+      })
+    );
+    onReady()
+  }
+
   return (
     <Box sx={{ display: "flex" }}>
       <ProjectDialog
@@ -74,6 +105,13 @@ const Projects: React.FC = () => {
           dispatch(toggleDialogProject())
           onReady()
         }}
+      />
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        title="Anda yakin untuk menghapus project ini?"
+        message="Project akan dihapus"
+        onConfirm={() => confirmDelete()}
+        onCancel={() => setShowConfirmDialog(false)}
       />
       <AppBar
         position="fixed"
@@ -138,8 +176,11 @@ const Projects: React.FC = () => {
                           {dayjs(val.created_at).format('DD-MM-YYYY HH:mm')}
                         </TableCell>
                         <TableCell>
-                          <IconButton>
-                            <MoreHorizIcon />
+                          <IconButton color="info" onClick={() => onEdit(val)}>
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton color="error" onClick={() => onDelete(val.id)}>
+                            <DeleteIcon />
                           </IconButton>
                         </TableCell>
                       </TableRow>
