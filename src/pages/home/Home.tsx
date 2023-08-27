@@ -21,10 +21,10 @@ function Home() {
         <Grid container justifyContent="center" alignItems="center">
           <Grid item lg={4} px={2}>
             <Typography variant="h1" fontSize={48} color="white">
-              Software Development
+              Sprint
             </Typography>
             <Typography variant="h1" fontSize={48} color="white">
-              Sprint Developement
+              Software Development
             </Typography>
             <Typography variant="h1" fontSize={48} color="white">
               #1 di Indonesia
