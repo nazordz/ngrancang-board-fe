@@ -24,7 +24,7 @@ function Home() {
               Software Development
             </Typography>
             <Typography variant="h1" fontSize={48} color="white">
-              Kanban Board
+              Sprint Developement
             </Typography>
             <Typography variant="h1" fontSize={48} color="white">
               #1 di Indonesia

@@ -316,8 +316,8 @@ const ReportSprint = () => {
           <TabContext value={tabIndex}>
             <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
               <TabList onChange={(e, value) => setTabIndex(value)}>
-                <Tab label="Sprint Report" value="0" />
-                <Tab label="Velocity Chart" value="1" />
+                <Tab label="Velocity Chart" value="0" />
+                <Tab label="Sprint Report" value="1" />
               </TabList>
             </Box>
             <TabPanel value="0">

@@ -95,20 +95,9 @@ const ActiveSprint: React.FC = () => {
     isDragging: boolean,
     draggableStyle: DraggingStyle | NotDraggingStyle | undefined
   ): React.CSSProperties => ({
-    // some basic styles to make the items look a bit nicer
-    // userSelect: "none",
-    // padding: grid * 2,
-    // margin: `0 0 ${grid}px 0`,
     padding: `8px ${grid * 2}px`,
-    // border: `1px solid #dfe1e6`,
     outline: "1px solid #dfe1e6",
     marginTop: 1,
-    // display: "flex",
-    // alignItems: "center",
-    // minHeight: 60,
-    // Custom styles
-    // justifyContent: "space-between",
-    // change background colour if dragging
     background: isDragging ? "lightgreen" : "white",
 
     // styles we need to apply on draggables

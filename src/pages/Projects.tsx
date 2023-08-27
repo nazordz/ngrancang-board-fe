@@ -74,7 +74,6 @@ const Projects: React.FC = () => {
   }, [page, rowsPerPage])
 
   function onEdit(val: Project) {
-    // dispatch(openProjectDialog(id))
     dispatch(selectProject(val))
     navigate('/settings')
   }
